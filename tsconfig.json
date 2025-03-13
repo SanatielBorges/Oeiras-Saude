@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "jsx": "react-jsx",  // Adicionando a configuração para JSX
+    "esModuleInterop": true,  // Ativando a interoperabilidade do ESModules
+    "allowImportingTsExtensions": true,  // Permite importar arquivos .ts e .tsx sem a extensão
+    "noEmit": true  // Impede a emissão de arquivos .js, apenas realiza a verificação de tipos
+  }
+}
