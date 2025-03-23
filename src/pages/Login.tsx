@@ -1,19 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Stethoscope } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import toast from 'react-hot-toast';
+import { ForgotPasswordModal } from '@/components/ForgotPasswordModal'; // Importando o modal
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  // Estado para controlar a visibilidade do modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
-    
+
     try {
       await login(email, password);
       toast.success('Login realizado!');
@@ -93,7 +97,15 @@ export function Login() {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
+                {/* Abrir o modal ao clicar no link */}
+                <a
+                  href="#"
+                  className="font-medium text-blue-600 hover:text-blue-500"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsModalOpen(true); // Abre o modal
+                  }}
+                >
                   Esqueceu sua senha?
                 </a>
               </div>
@@ -110,6 +122,9 @@ export function Login() {
           </form>
         </div>
       </div>
+
+      {/* Renderiza o modal se isModalOpen for true */}
+      {isModalOpen && <ForgotPasswordModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 }

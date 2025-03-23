@@ -1,8 +1,7 @@
-// src/pages/Register.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Stethoscope } from "lucide-react";
+import { Stethoscope } from "lucide-react"; // Importação correta do ícone
 import toast from "react-hot-toast";
 
 export const Register = () => {
@@ -25,6 +24,16 @@ export const Register = () => {
     city: "",
     state: "",
   });
+
+  // Estado para controlar a visibilidade da senha
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Função para validar senhas fortes
+  const isStrongPassword = (password: string): boolean => {
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    return passwordRegex.test(password);
+  };
 
   // Função para lidar com mudanças nos campos do formulário
   const handleChange = (
@@ -105,8 +114,10 @@ export const Register = () => {
       toast.error("Por favor, insira um e-mail válido.");
       return;
     }
-    if (!formData.password.trim() || formData.password.length < 6) {
-      toast.error("A senha deve ter pelo menos 6 caracteres.");
+    if (!formData.password.trim() || !isStrongPassword(formData.password)) {
+      toast.error(
+        "A senha deve ter pelo menos 8 caracteres, incluindo letras maiúsculas, minúsculas, números e caracteres especiais."
+      );
       return;
     }
     if (formData.password !== formData.confirmPassword) {
@@ -170,13 +181,15 @@ export const Register = () => {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col">
       {/* Header */}
       <header className="bg-white shadow-sm">
-  <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <Link to="/" className="flex items-center">
-      <Stethoscope className="h-8 w-8 text-blue-600" />
-      <span className="ml-2 text-xl font-bold text-gray-900">Portal de Saúde</span>
-    </Link>
-  </nav>
-</header>
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <Link to="/" className="flex items-center">
+            <Stethoscope className="h-8 w-8 text-blue-600" />
+            <span className="ml-2 text-xl font-bold text-gray-900">
+              Portal de Saúde
+            </span>
+          </Link>
+        </nav>
+      </header>
 
       {/* Formulário de Cadastro */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -231,14 +244,14 @@ export const Register = () => {
               </div>
 
               {/* Senha */}
-              <div>
+              <div className="relative">
                 <label htmlFor="password" className="sr-only">
                   Senha
                 </label>
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.password}
@@ -246,17 +259,24 @@ export const Register = () => {
                   placeholder="Senha"
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 px-3 py-2 flex items-center justify-center"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
               </div>
 
               {/* Confirmar Senha */}
-              <div>
+              <div className="relative">
                 <label htmlFor="confirmPassword" className="sr-only">
                   Confirmar Senha
                 </label>
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.confirmPassword}
@@ -264,6 +284,13 @@ export const Register = () => {
                   placeholder="Confirmar Senha"
                   className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 px-3 py-2 flex items-center justify-center"
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
               </div>
 
               {/* CPF */}
@@ -343,7 +370,9 @@ export const Register = () => {
 
               {/* CEP */}
               <div>
-                <label htmlFor="cep" className="sr-only">CEP</label>
+                <label htmlFor="cep" className="sr-only">
+                  CEP
+                </label>
                 <input
                   id="cep"
                   name="cep"
