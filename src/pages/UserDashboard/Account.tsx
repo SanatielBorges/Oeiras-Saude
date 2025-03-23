@@ -1,9 +1,9 @@
 // src/pages/UserDashboard/Account.tsx
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { api } from "@/lib/api";
+import { toast } from "react-hot-toast";
 
 export const Account = () => {
   const { user, updateUser } = useAuth();
@@ -13,18 +13,16 @@ export const Account = () => {
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
-    birthDate: "",
-    gender: "",
-    phone: "",
-    cep: "",
-    address: "",
-    neighborhood: "",
-    city: "",
-    state: "",
+    birthDate: user?.birthDate || "",
+    gender: user?.gender || "",
+    phone: user?.phone || "",
+    cep: user?.cep || "",
+    address: user?.address || "",
+    number: user?.number || "",
+    neighborhood: user?.neighborhood || "",
+    city: user?.city || "",
+    state: user?.state || "",
   });
-
-  // Estado para mensagens de erro ou sucesso
-  const [message, setMessage] = useState("");
 
   // Função para lidar com mudanças nos campos do formulário
   const handleChange = (
@@ -37,42 +35,88 @@ export const Account = () => {
   // Função para buscar endereço com base no CEP
   const fetchAddressByCep = async (cep: string) => {
     try {
-      const response = await api.get(`https://viacep.com.br/ws/${cep}/json/`);
-      const { logradouro, bairro, localidade, uf } = response.data;
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await response.json();
+      if (data.erro) {
+        toast.error("CEP inválido ou não encontrado.");
+        return;
+      }
       setFormData({
         ...formData,
-        address: logradouro,
-        neighborhood: bairro,
-        city: localidade,
-        state: uf,
+        address: data.logradouro,
+        neighborhood: data.bairro,
+        city: data.localidade,
+        state: data.uf,
       });
     } catch (error) {
-      setMessage("CEP inválido ou não encontrado.");
+      toast.error("Erro ao buscar o CEP. Tente novamente.");
     }
   };
 
   // Função para lidar com o envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+  
+    // Validações básicas
+    if (!formData.name.trim()) {
+      toast.error("O campo Nome é obrigatório.");
+      return;
+    }
+    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Por favor, insira um e-mail válido.");
+      return;
+    }
+    if (!formData.phone.trim()) {
+      toast.error("O campo Telefone é obrigatório.");
+      return;
+    }
+    if (!formData.birthDate.trim()) {
+      toast.error("O campo Data de Nascimento é obrigatório.");
+      return;
+    }
+    if (!formData.gender.trim()) {
+      toast.error("O campo Gênero é obrigatório.");
+      return;
+    }
+    if (!formData.cep.trim()) {
+      toast.error("O campo CEP é obrigatório.");
+      return;
+    }
+    if (!formData.address.trim()) {
+      toast.error("O campo Endereço é obrigatório.");
+      return;
+    }
+    if (!formData.neighborhood.trim()) {
+      toast.error("O campo Bairro é obrigatório.");
+      return;
+    }
+    if (!formData.city.trim()) {
+      toast.error("O campo Cidade é obrigatório.");
+      return;
+    }
+    if (!formData.state.trim()) {
+      toast.error("O campo Estado é obrigatório.");
+      return;
+    }
+  
     try {
       // Simulação de atualização no backend
-      await api.put("/users/update", formData);
+      console.log("Dados enviados:", formData);
       updateUser(formData); // Atualiza o contexto do usuário
-      setMessage("Perfil atualizado com sucesso!");
+      toast.success("Perfil atualizado com sucesso!");
+  
+      // Redireciona para a página anterior (mesmo comportamento do botão "Cancelar")
+      navigate(-1);
     } catch (error) {
-      setMessage("Erro ao atualizar o perfil. Tente novamente.");
+      toast.error("Erro ao atualizar o perfil. Tente novamente.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200 py-6">
       <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Editar Perfil</h1>
-        {message && (
-          <div className="mb-4 p-3 rounded-md bg-blue-100 text-blue-700">
-            {message}
-          </div>
-        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nome Completo */}
           <div>
@@ -86,7 +130,7 @@ export const Account = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -101,7 +145,8 @@ export const Account = () => {
               name="birthDate"
               value={formData.birthDate}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -115,7 +160,8 @@ export const Account = () => {
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             >
               <option value="">Selecione</option>
               <option value="Masculino">Masculino</option>
@@ -137,7 +183,24 @@ export const Account = () => {
               value={formData.phone}
               onChange={handleChange}
               placeholder="(XX) XXXXX-XXXX"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+
+          {/* E-mail */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              E-mail
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -158,7 +221,8 @@ export const Account = () => {
                 }}
                 onBlur={() => fetchAddressByCep(formData.cep)}
                 placeholder="XXXXX-XXX"
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                required
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
               />
               <Button
                 type="button"
@@ -181,7 +245,24 @@ export const Account = () => {
               name="address"
               value={formData.address}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            />
+          </div>
+
+          {/* Número Residencial */}
+          <div>
+            <label htmlFor="number" className="block text-sm font-medium text-gray-700">
+              Número Residencial
+            </label>
+            <input
+              type="number"
+              id="number"
+              name="number"
+              value={formData.number || ""}
+              onChange={handleChange}
+              placeholder="Ex.: 123"
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -196,7 +277,8 @@ export const Account = () => {
               name="neighborhood"
               value={formData.neighborhood}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -211,7 +293,8 @@ export const Account = () => {
               name="city"
               value={formData.city}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
@@ -226,7 +309,8 @@ export const Account = () => {
               name="state"
               value={formData.state}
               onChange={handleChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             />
           </div>
 
