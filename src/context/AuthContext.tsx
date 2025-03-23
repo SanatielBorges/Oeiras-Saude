@@ -13,17 +13,19 @@ type AuthContextType = {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updatedUser: Partial<User>) => void; // Adicionado aqui
 };
 
 export const AuthContext = createContext<AuthContextType>({
   user: null,
   login: async () => {},
   logout: () => {},
+  updateUser: () => {}, // Adicionado aqui
 });
 
 export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
@@ -34,11 +36,10 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      // Simulação de API
       const fakeUser = {
         id: "1",
         name: "Usuário Teste",
-        email: "user@example.com", // Adicione esta linha
+        email: "user@example.com",
         token: "fake-jwt",
       };
       localStorage.setItem("user", JSON.stringify(fakeUser));
@@ -55,8 +56,16 @@ export const AuthProvider = ({ children }) => {
     navigate("/login");
   };
 
+  const updateUser = (updatedUser: Partial<User>) => {
+    if (user) {
+      const newUser = { ...user, ...updatedUser };
+      localStorage.setItem("user", JSON.stringify(newUser));
+      setUser(newUser);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
